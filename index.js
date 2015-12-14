@@ -1,8 +1,9 @@
 // Add reference to the Azure IoT Hub device library
 var device = require('azure-iot-device');
-var connectionString = 'HostName=OpenLabIstanbul.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=fFIZA4x/MZ6EJXYFLT06EF/5C0kPLLmA6RhBNY15c2Y=';
+//var connectionString = 'HostName=OpenLabIstanbul.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=fFIZA4x/MZ6EJXYFLT06EF/5C0kPLLmA6RhBNY15c2Y=';
+var connectionString = 'HostName=OpenLabIstanbul.azure-devices.net;DeviceId=MyEdison;SharedAccessKey=KBFNE7LCVXgpqZv1qbeDNDUbsbyroimBEZuR0ZNANLg=';
 // Create the client instance specifying the preferred protocol
-var client = new device.Client(connectionString, new device.Http());
+var client = new device.Client.fromConnectionString(connectionString);
 
 
 var serialport = require('serialport');// include the library
@@ -35,15 +36,13 @@ function showPortOpen() {
 }
 
 function sendSerialData(mydata) {
-   //console.log(data);
-   // Create a message and send it to IoT Hub.
+   //console.log(mydata);
+    //Create a message and send it to IoT Hub.
    var data = JSON.stringify({ 'deviceId': 'MyEdison', 'data': mydata });
    var message = new device.Message(data);
    message.properties.add('myproperty', 'myvalue');
-   client.sendEvent(message, function(err, res){
-    if (err) console.log('SendEvent error: ' + err.toString());
-    if (res) console.log('SendEvent status: ' + res.statusCode + ' ' + res.statusMessage);
-   });
+   console.log("Sending message: " + message.getData());
+   client.sendEvent(message, printResultFor('send'));
 }
 
 function showPortClose() {
@@ -52,4 +51,11 @@ function showPortClose() {
 
 function showError(error) {
    console.log('Serial port error: ' + error);
+}
+// Helper function to print results in the console
+function printResultFor(op) {
+  return function printResult(err, res) {
+    if (err) console.log(op + ' error: ' + err.toString());
+    if (res && (res.statusCode !== 204)) console.log(op + ' status: ' + res.statusCode + ' ' + res.statusMessage);
+  };
 }
